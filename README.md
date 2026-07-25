@@ -22,6 +22,10 @@ configs:
         path: data/english-*.parquet
       - split: turkish
         path: data/turkish-*.parquet
+      - split: test_english
+        path: benchmark/data/test_english-*.parquet
+      - split: test_turkish
+        path: benchmark/data/test_turkish-*.parquet
 ---
 
 # Seasoned Advice Dataset
@@ -30,13 +34,24 @@ A bilingual (Turkish / English) instruction-tuning dataset of **500 conversation
 
 Every question and answer is human-written content collected through the Stack Exchange API — none of it is model-generated. Each assistant turn additionally carries a **reasoning trace** in a dedicated `thinking` field, making the dataset suitable for training or evaluating models that expose intermediate reasoning.
 
-|              |                                                                    |
-| ------------ | ------------------------------------------------------------------ |
-| **Examples** | 500 per split                                                      |
-| **Splits**   | `english`, `turkish` (parallel — row *n* is the same conversation) |
-| **Turns**    | 2 (one user, one assistant)                                        |
-| **Domain**   | Cooking, kitchen technique, food safety, food science              |
-| **Licence**  | CC BY-SA 4.0                                                       |
+|                |                                                                    |
+| -------------- | ------------------------------------------------------------------ |
+| **Examples**   | 500 per training split, 50 per benchmark split                     |
+| **Splits**     | `english`, `turkish` (parallel — row *n* is the same conversation) |
+| **Held-out**   | `test_english`, `test_turkish` (built after training)              |
+| **Turns**      | 2 (one user, one assistant)                                        |
+| **Domain**     | Cooking, kitchen technique, food safety, food science              |
+| **Licence**    | CC BY-SA 4.0                                                       |
+
+## Held-out benchmark
+
+`test_english` and `test_turkish` are a 100-row evaluation set built **after** training, from 50
+Stack Exchange pairs whose question IDs were excluded against the training set's `sources.jsonl`
+before scraping — verified overlap with the 500 training pairs is zero. Reference answers carry no
+`thinking` value, deliberately.
+
+See [`benchmark/README.md`](benchmark/README.md) for the construction pipeline, the exact
+held-out guarantee, why the reasoning traces are omitted, and how the splits are scored.
 
 ## Intended use
 
@@ -239,9 +254,18 @@ seasoned-advice-dataset/
 │   ├── glossary.md               EN->TR cooking terminology lock
 │   ├── thinking_en.md            stage 3 prompt, for reading
 │   └── translate_tr.md           stage 4 prompt, for reading
-└── data/
-    ├── raw_qa.jsonl              500 English pairs with scrape metadata
-    ├── english.jsonl             500 conversations, English split
-    ├── turkish.jsonl             500 conversations, Turkish split
-    └── sources.jsonl             500 attribution records
+├── data/
+│   ├── raw_qa.jsonl              500 English pairs with scrape metadata
+│   ├── english.jsonl             500 conversations, English split
+│   ├── turkish.jsonl             500 conversations, Turkish split
+│   └── sources.jsonl             500 attribution records
+└── benchmark/                    held-out evaluation set — see benchmark/README.md
+    ├── README.md                 construction, held-out guarantee, scoring
+    ├── scripts/
+    │   └── translate_qa.py       two-field translation (no reasoning trace)
+    └── data/
+        ├── raw_qa.jsonl          50 English pairs, excluded against the training IDs
+        ├── test_english.jsonl    50 conversations, English benchmark split
+        ├── test_turkish.jsonl    50 conversations, Turkish benchmark split
+        └── sources.jsonl         50 attribution records
 ```

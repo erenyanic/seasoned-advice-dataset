@@ -224,6 +224,24 @@ def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
             handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def load_excluded_question_ids(path: Path) -> set[int]:
+    """Read question IDs out of a sources.jsonl-style file's question_url field.
+
+    Lets a rerun (e.g. building a held-out benchmark) skip pairs a prior run
+    already selected, without needing the two runs to share any other state.
+    """
+    excluded: set[int] = set()
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            match = re.search(r"/q/(\d+)", json.loads(line)["question_url"])
+            if match:
+                excluded.add(int(match.group(1)))
+    return excluded
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", default="cooking", help="SE site key (default: cooking)")
@@ -247,6 +265,14 @@ def main() -> int:
         help="Candidates to pull before filtering (oversample; default: 1500)",
     )
     parser.add_argument("--out-dir", default="data", help="Directory for outputs")
+    parser.add_argument(
+        "--exclude-ids-from",
+        type=Path,
+        default=None,
+        help="A sources.jsonl-style file; question IDs found in its question_url "
+        "field are skipped, so a rerun never re-selects an already-used pair "
+        "(e.g. when building a held-out benchmark from the same site).",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -255,6 +281,11 @@ def main() -> int:
     client = StackExchangeClient(args.site)
     try:
         questions = fetch_questions(client, args.sort, args.max_questions)
+        if args.exclude_ids_from:
+            excluded = load_excluded_question_ids(args.exclude_ids_from)
+            before = len(questions)
+            questions = [q for q in questions if q["question_id"] not in excluded]
+            print(f"  excluded {before - len(questions)} question(s) already used in {args.exclude_ids_from}")
         by_id = {q["question_id"]: q for q in questions}
 
         # Accepted answers first: one cheap batched call per 100, and they are
