@@ -37,6 +37,7 @@ characters of answer markdown, no image-dependent pairs.
 | 1. Scrape 50 fresh English pairs | `scripts/fetch_stackexchange.py` (with `--exclude-ids-from`) | `data/raw_qa.jsonl`, `data/sources.jsonl` |
 | 2. Shape into the conversation schema | `scripts/build_conversations.py` | `data/test_english.jsonl` |
 | 3. Translate question and answer | `benchmark/scripts/translate_qa.py` | `data/test_turkish.jsonl` |
+| 4. Package into parquet splits | `scripts/package_dataset.py` | `data/test_{english,turkish}-*.parquet` |
 
 Stages 1 and 2 reuse the training pipeline's own scripts unchanged. Stage 3 uses a benchmark-specific
 script for one reason: `scripts/translate.py` translates three fields and refuses to run on any row
@@ -64,6 +65,13 @@ way to reason towards "why salt pasta water", so a generated trace here would be
 presented as a standard, which is exactly the framing this dataset's own
 [limitations section](../README.md#limitations) warns against. The model still emits its `<think>`
 block during evaluation; that block is stripped before its answer is compared against the human one.
+
+Note that `thinking` keeps the arrow type `Value("string")` here rather than `Value("null")`, even
+though it is null in all 100 rows. An arrow string column is nullable, so an all-null column is
+valid — and declaring it `null` would give the benchmark a schema incompatible with the training
+splits, which would stop all four sharing a single Hub config.
+`scripts/package_dataset.py --verify` asserts both properties: that no benchmark row carries a
+trace, and that all four splits report one identical schema.
 
 ## Provenance and licence
 

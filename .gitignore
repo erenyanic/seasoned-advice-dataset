@@ -17,6 +17,10 @@ env/
 .env
 .env.local
 
+# Benchmark translation checkpoint: raw DeepSeek output plus per-row validation
+# warnings. Resumes an interrupted run; not part of the released dataset.
+benchmark/data/stage_turkish.jsonl
+
 # Editor and assistant metadata
 .claude/
 .vscode/

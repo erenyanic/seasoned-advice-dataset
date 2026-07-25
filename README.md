@@ -127,7 +127,7 @@ DatasetDict({
 | 2. Shape into schema           | `scripts/build_conversations.py` | `data/english.jsonl`                      |
 | 3. Generate English `thinking` | `scripts/generate_thinking.py`   | fills `thinking` in `data/english.jsonl`  |
 | 4. Translate all three fields  | `scripts/translate.py`           | `data/turkish.jsonl`                      |
-| 5. Package into parquet splits | `scripts/package_dataset.py`     | `data/{english,turkish}-*.parquet`        |
+| 5. Package into parquet splits | `scripts/package_dataset.py`     | `{data,benchmark/data}/*-*.parquet`       |
 
 The conversation schema is fixed at stage 2, before any content is generated, so later stages only ever rewrite field *values* and never the structure.
 
