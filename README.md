@@ -92,7 +92,7 @@ The five keys are fixed and no extra keys are added, so the data loads directly 
 ```python
 from datasets import load_dataset
 
-ds = load_dataset("Erenyanic/seasoned-advice-dataset")
+ds = load_dataset("erenyanic/seasoned-advice-dataset")
 ds["turkish"][0]["train"]   # -> list of two message dicts
 ```
 

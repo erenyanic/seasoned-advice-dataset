@@ -1,7 +1,7 @@
 # Held-out benchmark
 
 A 100-row evaluation set (50 English + 50 Turkish) for measuring what the
-[`qwen3.5-4b-seasoned-advice-lora`](https://huggingface.co/Erenyanic/qwen3.5-4b-seasoned-advice-lora)
+[`qwen3.5-4b-seasoned-advice-lora`](https://huggingface.co/erenyanic/qwen3.5-4b-seasoned-advice-lora)
 adapter was actually fine-tuned to do. It ships as the `test_english` and `test_turkish` splits
 of this dataset.
 
@@ -82,9 +82,10 @@ as the training set. Attribution requirements apply here identically.
 ## How it is used
 
 Scoring lives with the model, not the data:
-[`Seasoned_Advice_Benchmark_Colab.ipynb`](https://huggingface.co/Erenyanic/qwen3.5-4b-seasoned-advice-lora)
-runs the base and fine-tuned models over these 100 questions on the same pipeline and at the same
-precision, then scores them two ways — semantic similarity to the human reference answer, and a
-blind, order-randomized LLM-judge pairwise comparison on practical correctness, food-safety
-accuracy, actionable specificity, and tone. The similarity score is cheap and deterministic; the
-judge is the signal that actually discriminates, because it is finally being asked in-domain.
+[`Multi_Model_Benchmark_Colab.ipynb`](https://huggingface.co/erenyanic/qwen3.5-4b-seasoned-advice-lora)
+runs five models across three families over these 100 questions on the same pipeline and at the
+same precision, then scores them two ways — proximity to the human reference answer, and a blind,
+order-randomized LLM-judge round robin on practical correctness, food-safety accuracy, actionable
+specificity, and tone. Proximity is cheap and deterministic but reads only the opening of a long
+answer, so it measures closeness to the corpus rather than quality; the judge carries the quality
+claim. Results, and the disagreement between the two, are on the model card.
